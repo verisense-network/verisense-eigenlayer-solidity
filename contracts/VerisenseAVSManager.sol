@@ -22,8 +22,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
 
-    address public constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
-
     /**
      * @notice The EigenPodManager
      */
@@ -115,10 +113,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     function initialize(address accessManager, uint64 initialDeregistrationDelay) public initializer {
         __AccessManaged_init(accessManager);
         _setDeregistrationDelay(initialDeregistrationDelay);
-
-        // Initialize BEACON_CHAIN_STRATEGY as an allowed restaking strategy
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-        $.allowlistedRestakingStrategies.add(BEACON_CHAIN_STRATEGY);
     }
 
     // EXTERNAL FUNCTIONS
@@ -149,97 +143,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         _getVerisenseAVSManagerStorage().operators[msg.sender].commitment = initialCommitment;
 
         emit OperatorRegisteredWithCommitment(msg.sender, initialCommitment);
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
-    function registerValidators(address podOwner, bytes32[] calldata blsPubKeyHashes)
-        external
-        podIsDelegatedToMsgSender(podOwner)
-        registeredOperator(msg.sender)
-        restricted
-    {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-
-        bytes memory delegateKey = _getActiveCommitment($.operators[msg.sender]).delegateKey;
-
-        if (delegateKey.length == 0) {
-            revert DelegateKeyNotSet();
-        }
-
-        IEigenPod eigenPod = EIGEN_POD_MANAGER.getPod(podOwner);
-
-        uint256 newValidatorCount = blsPubKeyHashes.length;
-
-        for (uint256 i = 0; i < newValidatorCount; i++) {
-            bytes32 blsPubKeyHash = blsPubKeyHashes[i];
-            IEigenPod.ValidatorInfo memory validatorInfo = eigenPod.validatorPubkeyHashToInfo(blsPubKeyHash);
-
-            if (validatorInfo.status != IEigenPod.VALIDATOR_STATUS.ACTIVE) {
-                revert ValidatorNotActive();
-            }
-
-            if ($.validators[blsPubKeyHash].index != 0) {
-                revert ValidatorAlreadyRegistered();
-            }
-
-            // Store the validator record
-            $.validators[blsPubKeyHash] = ValidatorData({
-                eigenPod: address(eigenPod),
-                index: validatorInfo.validatorIndex,
-                operator: msg.sender,
-                registeredUntil: type(uint64).max
-            });
-
-            // Also track the mapping from index -> BLS key
-            $.validatorIndexes[validatorInfo.validatorIndex] = blsPubKeyHash;
-
-            emit ValidatorRegistered({
-                podOwner: podOwner,
-                operator: msg.sender,
-                delegateKey: delegateKey,
-                blsPubKeyHash: blsPubKeyHash,
-                validatorIndex: validatorInfo.validatorIndex
-            });
-        }
-
-        OperatorData storage operator = $.operators[msg.sender];
-        operator.validatorCount += uint128(newValidatorCount);
-        operator.startDeregisterOperatorBlock = 0;
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
-    function deregisterValidators(bytes32[] calldata blsPubKeyHashes) external restricted {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-
-        uint256 validatorCount = blsPubKeyHashes.length;
-
-        for (uint256 i = 0; i < validatorCount; i++) {
-            bytes32 blsPubKeyHash = blsPubKeyHashes[i];
-            ValidatorData storage validator = $.validators[blsPubKeyHash];
-
-            address operator = validator.operator;
-
-            if (operator != msg.sender) {
-                revert NotValidatorOperator();
-            }
-
-            if (validator.registeredUntil != type(uint64).max) {
-                revert ValidatorAlreadyDeregistered();
-            }
-
-            // Mark the validator as deregistered
-            validator.registeredUntil = uint64(block.number);
-
-            emit ValidatorDeregistered({ operator: operator, blsPubKeyHash: blsPubKeyHash });
-        }
-
-        $.operators[msg.sender].validatorCount -= uint128(validatorCount);
     }
 
     /**
@@ -397,59 +300,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     /**
      * @inheritdoc IVerisenseAVSManager
      */
-    function getValidator(bytes32 blsPubKeyHash) external view returns (ValidatorDataExtended memory) {
-        return _getValidator(blsPubKeyHash);
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
-    function getValidatorByIndex(uint256 validatorIndex) external view returns (ValidatorDataExtended memory) {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-        bytes32 blsPubKeyHash = $.validatorIndexes[validatorIndex];
-        return _getValidator(blsPubKeyHash);
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
-    function getValidators(bytes32[] calldata blsPubKeyHashes) external view returns (ValidatorDataExtended[] memory) {
-        uint256 blsPubKeyHashesLength = blsPubKeyHashes.length;
-        ValidatorDataExtended[] memory validators = new ValidatorDataExtended[](blsPubKeyHashesLength);
-        for (uint256 i = 0; i < blsPubKeyHashesLength; i++) {
-            validators[i] = _getValidator(blsPubKeyHashes[i]);
-        }
-        return validators;
-    }
-
-    /**
-     * @notice Checks if a given validator is committed to a particular chain ID,
-     * by looking up its operator's active chain commitments.
-     */
-    function isValidatorInChainId(bytes32 blsPubKeyHash, uint256 chainId) external view returns (bool) {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-        ValidatorData storage validator = $.validators[blsPubKeyHash];
-
-        // If the validator is never registered or is already deregistered, return false
-        if (validator.index == 0 || block.number >= validator.registeredUntil) {
-            return false;
-        }
-
-        // Check if the operator has the chainId in its active commitment
-        OperatorData storage operatorData = $.operators[validator.operator];
-        OperatorCommitment memory activeCommitment = _getActiveCommitment(operatorData);
-
-        for (uint256 i = 0; i < activeCommitment.chainIds.length; i++) {
-            if (activeCommitment.chainIds[i] == chainId) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
     function getOperatorRestakedStrategies(address operator)
         external
         view
@@ -507,33 +357,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
             isRegistered: _getAvsOperatorStatus(operator) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED,
             commitmentValidAfter: operatorData.commitmentValidAfter
         });
-    }
-
-    function _getValidator(bytes32 blsPubKeyHash) internal view returns (ValidatorDataExtended memory validator) {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-
-        ValidatorData memory validatorData = $.validators[blsPubKeyHash];
-
-        if (validatorData.index != 0) {
-            IEigenPod eigenPod = IEigenPod(validatorData.eigenPod);
-            IEigenPod.ValidatorInfo memory validatorInfo = eigenPod.validatorPubkeyHashToInfo(blsPubKeyHash);
-
-            bool backedByStake = EIGEN_DELEGATION_MANAGER.delegatedTo(eigenPod.podOwner()) == validatorData.operator;
-
-            OperatorData storage operator = $.operators[validatorData.operator];
-            OperatorCommitment memory activeCommitment = _getActiveCommitment(operator);
-
-            return ValidatorDataExtended({
-                operator: validatorData.operator,
-                eigenPod: validatorData.eigenPod,
-                validatorIndex: validatorInfo.validatorIndex,
-                status: validatorInfo.status,
-                delegateKey: activeCommitment.delegateKey,
-                chainIds: activeCommitment.chainIds,
-                backedByStake: backedByStake,
-                registered: block.number < validatorData.registeredUntil
-            });
-        }
     }
 
     function _getActiveCommitment(OperatorData storage operatorData)

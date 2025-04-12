@@ -275,19 +275,6 @@ interface IVerisenseAVSManager {
     ) external;
 
     /**
-     * @notice Registers validators for a given pod owner.
-     * @param podOwner The address of the pod owner.
-     * @param blsPubKeyHashes The BLS public key hashes of the validators to register.
-     */
-    function registerValidators(address podOwner, bytes32[] calldata blsPubKeyHashes) external;
-
-    /**
-     * @notice Deregisters validators from the Verisense AVS.
-     * @param blsPubKeyHashes The BLS public key hashes of the validators to deregister.
-     */
-    function deregisterValidators(bytes32[] calldata blsPubKeyHashes) external;
-
-    /**
      * @notice Starts the process of deregistering an operator from the Verisense AVS.
      */
     function startDeregisterOperator() external;
@@ -329,35 +316,6 @@ interface IVerisenseAVSManager {
      * @return OperatorDataExtended struct containing information about the operator.
      */
     function getOperator(address operator) external view returns (OperatorDataExtended memory);
-
-    /**
-     * @notice Retrieves information about a validator using its BLS public key hash.
-     * @param blsPubKeyHash The BLS public key hash of the validator.
-     * @return ValidatorDataExtended struct containing information about the validator.
-     */
-    function getValidator(bytes32 blsPubKeyHash) external view returns (ValidatorDataExtended memory);
-
-    /**
-     * @notice Retrieves information about a validator using its validator index.
-     * @param validatorIndex The index of the validator.
-     * @return ValidatorDataExtended struct containing information about the validator.
-     */
-    function getValidatorByIndex(uint256 validatorIndex) external view returns (ValidatorDataExtended memory);
-
-    /**
-     * @notice Retrieves information about multiple validators.
-     * @param blsPubKeyHashes The BLS public key hashes of the validators.
-     * @return An array of ValidatorDataExtended structs containing information about the validators.
-     */
-    function getValidators(bytes32[] calldata blsPubKeyHashes) external view returns (ValidatorDataExtended[] memory);
-
-    /**
-     * @notice Checks if a validator is registered for a specific chain ID.
-     * @param blsPubKeyHash The BLS public key hash of the validator.
-     * @param chainId The chain ID to check.
-     * @return bool True if the validator is registered for the given chain ID, false otherwise.
-     */
-    function isValidatorInChainId(bytes32 blsPubKeyHash, uint256 chainId) external view returns (bool);
 
     /**
      * @notice Retrieves the current deregistration delay for operators.
