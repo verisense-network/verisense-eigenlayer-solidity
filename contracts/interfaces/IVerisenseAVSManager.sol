@@ -9,14 +9,14 @@ import { IEigenPod } from "eigenlayer-contracts/src/contracts/interfaces/IEigenP
 import { IEigenPodManager } from "eigenlayer-contracts/src/contracts/interfaces/IEigenPodManager.sol";
 
 /**
- * @title IUniFiAVSManager
- * @notice Interface for the UniFiAVSManager contract, which manages operators and validators in the UniFi AVS.
+ * @title IVerisenseAVSManager
+ * @notice Interface for the VerisenseAVSManager contract, which manages operators and validators in the Verisense AVS.
  * @dev This interface defines the main functions and events for operator and validator management.
  */
 interface IVerisenseAVSManager {
     /**
      * @title ValidatorData
-     * @notice Struct to store information about a validator in the UniFi AVS system.
+     * @notice Struct to store information about a validator in the Verisense AVS system.
      * @dev This struct is used to keep track of important validator details.
      */
     struct ValidatorData {
@@ -32,7 +32,7 @@ interface IVerisenseAVSManager {
 
     /**
      * @title OperatorData
-     * @notice Struct to store information about an operator in the UniFi AVS system.
+     * @notice Struct to store information about an operator in the Verisense AVS system.
      * @dev This struct is used to keep track of important operator details.
      */
     struct OperatorData {
@@ -81,7 +81,7 @@ interface IVerisenseAVSManager {
 
     /**
      * @title OperatorDataExtended
-     * @notice Struct to store extended information about an operator in the UniFi AVS system.
+     * @notice Struct to store extended information about an operator in the Verisense AVS system.
      * @dev This struct combines OperatorData with additional status information.
      */
     struct OperatorDataExtended {
@@ -161,20 +161,20 @@ interface IVerisenseAVSManager {
     error InvalidRewardsCoordinatorAddress();
 
     /**
-     * @notice Emitted when a new operator is registered in the UniFi AVS.
+     * @notice Emitted when a new operator is registered in the Verisense AVS.
      * @param operator The address of the registered operator.
      */
     event OperatorRegistered(address indexed operator);
 
     /**
-     * @notice Emitted when a new operator is registered in the UniFi AVS with a commitment.
+     * @notice Emitted when a new operator is registered in the Verisense AVS with a commitment.
      * @param operator The address of the registered operator.
      * @param commitment The commitment set for the operator.
      */
     event OperatorRegisteredWithCommitment(address indexed operator, OperatorCommitment commitment);
 
     /**
-     * @notice Emitted when a new validator is registered in the UniFi AVS .
+     * @notice Emitted when a new validator is registered in the Verisense AVS .
      * @param podOwner The address of the validator's EigenPod owner.
      * @param delegateKey The delegate public key for the validator.
      * @param blsPubKeyHash The BLS public key hash of the validator.
@@ -195,13 +195,13 @@ interface IVerisenseAVSManager {
     event OperatorDeregisterStarted(address indexed operator);
 
     /**
-     * @notice Emitted when an operator is deregistered from the UniFi AVS.
+     * @notice Emitted when an operator is deregistered from the Verisense AVS.
      * @param operator The address of the deregistered operator.
      */
     event OperatorDeregistered(address indexed operator);
 
     /**
-     * @notice Emitted when a validator is deregistered from the UniFi AVS.
+     * @notice Emitted when a validator is deregistered from the Verisense AVS.
      * @param operator The address of the operator managing the validator.
      * @param blsPubKeyHash The BLS public key hash of the deregistered validator.
      */
@@ -259,13 +259,13 @@ interface IVerisenseAVSManager {
     function AVS_DIRECTORY() external view returns (IAVSDirectory);
 
     /**
-     * @notice Registers a new operator in the UniFi AVS.
+     * @notice Registers a new operator in the Verisense AVS.
      * @param operatorSignature The signature and associated data for operator registration.
      */
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature) external;
 
     /**
-     * @notice Registers a new operator in the UniFi AVS with a commitment.
+     * @notice Registers a new operator in the Verisense AVS with a commitment.
      * @param operatorSignature The signature and associated data for operator registration.
      * @param initialCommitment The initial commitment for the operator.
      */
@@ -282,18 +282,18 @@ interface IVerisenseAVSManager {
     function registerValidators(address podOwner, bytes32[] calldata blsPubKeyHashes) external;
 
     /**
-     * @notice Deregisters validators from the UniFi AVS.
+     * @notice Deregisters validators from the Verisense AVS.
      * @param blsPubKeyHashes The BLS public key hashes of the validators to deregister.
      */
     function deregisterValidators(bytes32[] calldata blsPubKeyHashes) external;
 
     /**
-     * @notice Starts the process of deregistering an operator from the UniFi AVS.
+     * @notice Starts the process of deregistering an operator from the Verisense AVS.
      */
     function startDeregisterOperator() external;
 
     /**
-     * @notice Finishes the process of deregistering an operator from the UniFi AVS.
+     * @notice Finishes the process of deregistering an operator from the Verisense AVS.
      */
     function finishDeregisterOperator() external;
     /**

@@ -117,7 +117,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         _setDeregistrationDelay(initialDeregistrationDelay);
 
         // Initialize BEACON_CHAIN_STRATEGY as an allowed restaking strategy
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         $.allowlistedRestakingStrategies.add(BEACON_CHAIN_STRATEGY);
     }
 
@@ -146,7 +146,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     ) external restricted {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
 
-        _getUniFiAVSManagerStorage().operators[msg.sender].commitment = initialCommitment;
+        _getVerisenseAVSManagerStorage().operators[msg.sender].commitment = initialCommitment;
 
         emit OperatorRegisteredWithCommitment(msg.sender, initialCommitment);
     }
@@ -161,7 +161,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         registeredOperator(msg.sender)
         restricted
     {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         bytes memory delegateKey = _getActiveCommitment($.operators[msg.sender]).delegateKey;
 
@@ -215,7 +215,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
      */
     function deregisterValidators(bytes32[] calldata blsPubKeyHashes) external restricted {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         uint256 validatorCount = blsPubKeyHashes.length;
 
@@ -247,7 +247,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
      */
     function startDeregisterOperator() external registeredOperator(msg.sender) restricted {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
 
@@ -269,7 +269,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
      */
     function finishDeregisterOperator() external registeredOperator(msg.sender) restricted {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
 
@@ -297,7 +297,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         registeredOperator(msg.sender)
         restricted
     {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         OperatorData storage operator = $.operators[msg.sender];
 
         if (operator.commitmentValidAfter != 0 && block.number >= operator.commitmentValidAfter) {
@@ -336,7 +336,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @dev Restricted to the DAO
      */
     function setAllowlistRestakingStrategy(address strategy, bool allowed) external restricted {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         bool success;
         if (allowed) {
             success = $.allowlistedRestakingStrategies.add(strategy);
@@ -383,7 +383,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @inheritdoc IVerisenseAVSManager
      */
     function getDeregistrationDelay() external view returns (uint64) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         return $.deregistrationDelay;
     }
 
@@ -405,7 +405,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @inheritdoc IVerisenseAVSManager
      */
     function getValidatorByIndex(uint256 validatorIndex) external view returns (ValidatorDataExtended memory) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         bytes32 blsPubKeyHash = $.validatorIndexes[validatorIndex];
         return _getValidator(blsPubKeyHash);
     }
@@ -427,7 +427,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * by looking up its operator's active chain commitments.
      */
     function isValidatorInChainId(bytes32 blsPubKeyHash, uint256 chainId) external view returns (bool) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         ValidatorData storage validator = $.validators[blsPubKeyHash];
 
         // If the validator is never registered or is already deregistered, return false
@@ -456,7 +456,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         returns (address[] memory restakedStrategies)
     {
         OperatorDataExtended memory operatorData = _getOperator(operator);
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         if (operatorData.isRegistered) {
             uint256 allowlistedCount = $.allowlistedRestakingStrategies.length();
@@ -487,14 +487,14 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @inheritdoc IVerisenseAVSManager
      */
     function getRestakeableStrategies() external view returns (address[] memory) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         return $.allowlistedRestakingStrategies.values();
     }
 
     // INTERNAL FUNCTIONS
 
     function _getOperator(address operator) internal view returns (OperatorDataExtended memory) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         OperatorData storage operatorData = $.operators[operator];
 
         OperatorCommitment memory activeCommitment = _getActiveCommitment(operatorData);
@@ -510,7 +510,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     }
 
     function _getValidator(bytes32 blsPubKeyHash) internal view returns (ValidatorDataExtended memory validator) {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         ValidatorData memory validatorData = $.validators[blsPubKeyHash];
 
@@ -552,7 +552,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @param newDelay The new deregistration delay to set
      */
     function _setDeregistrationDelay(uint64 newDelay) internal {
-        UniFiAVSStorage storage $ = _getUniFiAVSManagerStorage();
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         uint64 oldDelay = $.deregistrationDelay;
         $.deregistrationDelay = newDelay;
 
