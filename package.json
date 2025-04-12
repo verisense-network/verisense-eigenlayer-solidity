@@ -1,0 +1,19 @@
+{
+  "name": "verisense-eigenlayer-solidity",
+  "version": "1.0.0",
+  "description": "The solidity implementation of Verisense-eigenlayer middleware on EVM compatible blockchains.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@openzeppelin/hardhat-upgrades": "^3.1.1",
+    "hardhat": "^2.22.15"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.0.1",
+    "@openzeppelin/contracts-upgradeable": "5.0.1",
+    "eigenlayer-contracts": "https://github.com/Layr-Labs/eigenlayer-contracts.git#ecaff63"
+  }
+}
