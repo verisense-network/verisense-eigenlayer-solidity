@@ -40,23 +40,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     IAVSDirectory public immutable override AVS_DIRECTORY;
 
     /**
-     * @dev Modifier to check if the pod is delegated to the msg.sender
-     * @param podOwner The address of the pod owner
-     */
-    modifier podIsDelegatedToMsgSender(address podOwner) {
-        if (!EIGEN_DELEGATION_MANAGER.isOperator(msg.sender)) {
-            revert NotOperator();
-        }
-        if (!EIGEN_POD_MANAGER.hasPod(podOwner)) {
-            revert NoEigenPod();
-        }
-        if (EIGEN_DELEGATION_MANAGER.delegatedTo(podOwner) != msg.sender) {
-            revert NotDelegatedToOperator();
-        }
-        _;
-    }
-
-    /**
      * @dev Internal function to get AVS operator status via staticcall
      * @param operator The address of the operator
      */
