@@ -30,6 +30,13 @@ interface IVerisenseAVSManager {
         uint64 registeredUntil;
     }
 
+    struct OperatorValidData {
+        address operator;
+        uint256 stake;
+        bytes32 key;
+        bool isRegistered;
+    }
+
     /**
      * @title OperatorData
      * @notice Struct to store information about an operator in the Verisense AVS system.
@@ -40,12 +47,14 @@ interface IVerisenseAVSManager {
         OperatorCommitment commitment;
         /// @notice The pending commitment of the operator.
         OperatorCommitment pendingCommitment;
-        /// @notice The number of validators associated with this operator.
-        uint128 validatorCount;
         /// @notice The block number when the operator started the deregistration process.
         uint64 startDeregisterOperatorBlock;
         /// @notice The block number after which the pending commitment becomes valid.
         uint64 commitmentValidAfter;
+        /// @notice pubkey for substate block
+        bytes32 substrate_pubkey;
+
+        bool isRegistered;
     }
 
     /**
@@ -89,8 +98,6 @@ interface IVerisenseAVSManager {
         OperatorCommitment commitment;
         /// @notice The pending commitment of the operator.
         OperatorCommitment pendingCommitment;
-        /// @notice The number of validators associated with this operator.
-        uint128 validatorCount;
         /// @notice The block number when the operator started the deregistration process.
         uint128 startDeregisterOperatorBlock;
         /// @notice The block number after which the pending commitment becomes valid.
@@ -262,7 +269,7 @@ interface IVerisenseAVSManager {
      * @notice Registers a new operator in the Verisense AVS.
      * @param operatorSignature The signature and associated data for operator registration.
      */
-    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature) external;
+    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature, bytes32 substrate_pubkey) external;
 
     /**
      * @notice Registers a new operator in the Verisense AVS with a commitment.
@@ -271,7 +278,8 @@ interface IVerisenseAVSManager {
      */
     function registerOperatorWithCommitment(
         ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature,
-        OperatorCommitment memory initialCommitment
+        OperatorCommitment memory initialCommitment,
+        bytes32 substrate_pubkey
     ) external;
 
     /**

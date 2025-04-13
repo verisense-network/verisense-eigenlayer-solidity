@@ -5,6 +5,7 @@ import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils
 import { AccessManagedUpgradeable } from
     "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
+import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import { ISignatureUtils } from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
 import { IStrategy } from "eigenlayer-contracts/src/contracts/interfaces/IStrategy.sol";
 import { IAVSDirectory } from "eigenlayer-contracts/src/contracts/interfaces/IAVSDirectory.sol";
@@ -39,10 +40,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      */
     IAVSDirectory public immutable override AVS_DIRECTORY;
 
-    /**
-     * @dev Internal function to get AVS operator status via staticcall
-     * @param operator The address of the operator
-     */
+
     function _getAvsOperatorStatus(address operator)
         internal
         view
@@ -104,12 +102,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @inheritdoc IVerisenseAVSManager
      * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
      */
-    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature)
+    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substrate_pubkey)
         external
         restricted
     {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
-
+        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
+        _getVerisenseAVSManagerStorage().operatorAddresses.add(msg.sender);
         emit OperatorRegistered(msg.sender);
     }
 
@@ -119,12 +118,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      */
     function registerOperatorWithCommitment(
         ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature,
-        OperatorCommitment calldata initialCommitment
+        OperatorCommitment calldata initialCommitment,
+        bytes32 substrate_pubkey
     ) external restricted {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
-
+        _getVerisenseAVSManagerStorage().operatorAddresses.add(msg.sender);
         _getVerisenseAVSManagerStorage().operators[msg.sender].commitment = initialCommitment;
-
+        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
         emit OperatorRegisteredWithCommitment(msg.sender, initialCommitment);
     }
 
@@ -136,10 +136,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
-
-        if (operator.validatorCount > 0) {
-            revert OperatorHasValidators();
-        }
 
         if (operator.startDeregisterOperatorBlock != 0) {
             revert DeregistrationAlreadyStarted();
@@ -170,6 +166,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         AVS_DIRECTORY.deregisterOperatorFromAVS(msg.sender);
 
         delete $.operators[msg.sender];
+        $.operatorAddresses.remove(msg.sender);
 
         emit OperatorDeregistered(msg.sender);
     }
@@ -280,6 +277,23 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         return _getOperator(operator);
     }
 
+    function getOperators() external view returns (OperatorValidData[] memory) {
+        uint256 operators_size = _getVerisenseAVSManagerStorage().operatorAddresses.length();
+        OperatorValidData[]  memory validators = new OperatorValidData[](operators_size);
+        for (uint256 i; i < operators_size; i++) {
+            address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
+            OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
+            OperatorValidData memory dv = OperatorValidData({
+                key : d.substrate_pubkey,
+                operator : key,
+                stake : 0,
+                isRegistered : _getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED
+            });
+            validators[i] = dv;
+        }
+        return validators;
+    }
+
     /**
      * @inheritdoc IVerisenseAVSManager
      */
@@ -333,7 +347,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         OperatorCommitment memory activeCommitment = _getActiveCommitment(operatorData);
 
         return OperatorDataExtended({
-            validatorCount: operatorData.validatorCount,
             commitment: activeCommitment,
             pendingCommitment: operatorData.pendingCommitment,
             startDeregisterOperatorBlock: operatorData.startDeregisterOperatorBlock,
@@ -341,6 +354,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
             commitmentValidAfter: operatorData.commitmentValidAfter
         });
     }
+
 
     function _getActiveCommitment(OperatorData storage operatorData)
         internal

@@ -14,6 +14,7 @@ abstract contract VerisenseAVSManagerStorage is IVerisenseAVSManager {
      //   mapping(bytes32 blsPubKeyHash => ValidatorData validatorData) validators;
      //   mapping(uint256 validatorIndex => bytes32 blsPubKeyHash) validatorIndexes;
         mapping(address operator => OperatorData operatorData) operators;
+        EnumerableSet.AddressSet operatorAddresses;
         uint64 deregistrationDelay;
         EnumerableSet.AddressSet allowlistedRestakingStrategies;
     }
