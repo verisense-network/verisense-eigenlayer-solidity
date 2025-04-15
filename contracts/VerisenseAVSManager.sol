@@ -23,6 +23,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
 
+    address public constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
     /**
      * @notice The EigenPodManager
      */
@@ -94,6 +95,9 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     function initialize(address accessManager, uint64 initialDeregistrationDelay) public initializer {
         __AccessManaged_init(accessManager);
         _setDeregistrationDelay(initialDeregistrationDelay);
+        // Initialize BEACON_CHAIN_STRATEGY as an allowed restaking strategy
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
+        $.allowlistedRestakingStrategies.add(BEACON_CHAIN_STRATEGY);
     }
 
     // EXTERNAL FUNCTIONS
@@ -280,13 +284,14 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     function getOperators() external view returns (OperatorValidData[] memory) {
         uint256 operators_size = _getVerisenseAVSManagerStorage().operatorAddresses.length();
         OperatorValidData[]  memory validators = new OperatorValidData[](operators_size);
+        IStrategy[] memory strategies = _getStrategies();
         for (uint256 i; i < operators_size; i++) {
             address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
             OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
             OperatorValidData memory dv = OperatorValidData({
                 key : d.substrate_pubkey,
                 operator : key,
-                stake : 0,
+                stake : _getOperatorStake(key, strategies),
                 isRegistered : _getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED
             });
             validators[i] = dv;
@@ -330,6 +335,27 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         }
     }
 
+
+    function _getOperatorStake(address operator, IStrategy[] memory strategies) internal view returns (uint256) {
+        uint256[] memory shares = EIGEN_DELEGATION_MANAGER.getOperatorShares(operator, strategies);
+        uint256 total_shares = 0;
+        for (uint256 i = 0; i < shares.length; i++) {
+            total_shares += shares[i];
+        }
+        return total_shares;
+    }
+
+    function _getStrategies() internal view returns (IStrategy[] memory) {
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
+        uint256 allowlistedCount = $.allowlistedRestakingStrategies.length();
+        IStrategy[] memory strategies = new IStrategy[](allowlistedCount);
+        for (uint256 i = 0; i < allowlistedCount; i++) {
+            strategies[i] = IStrategy($.allowlistedRestakingStrategies.at(i));
+        }
+        return strategies;
+    }
+
+
     /**
      * @inheritdoc IVerisenseAVSManager
      */
@@ -354,7 +380,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
             commitmentValidAfter: operatorData.commitmentValidAfter
         });
     }
-
 
     function _getActiveCommitment(OperatorData storage operatorData)
         internal
