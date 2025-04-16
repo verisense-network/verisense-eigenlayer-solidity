@@ -11,8 +11,6 @@ import {IVerisenseAVSManager} from "./interfaces/IVerisenseAVSManager.sol";
 
 abstract contract VerisenseAVSManagerStorage is IVerisenseAVSManager {
     struct VerisenseAVSStorage {
-     //   mapping(bytes32 blsPubKeyHash => ValidatorData validatorData) validators;
-     //   mapping(uint256 validatorIndex => bytes32 blsPubKeyHash) validatorIndexes;
         mapping(address operator => OperatorData operatorData) operators;
         EnumerableSet.AddressSet operatorAddresses;
         uint64 deregistrationDelay;

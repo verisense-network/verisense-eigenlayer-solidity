@@ -120,22 +120,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
      * @inheritdoc IVerisenseAVSManager
      * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
      */
-    function registerOperatorWithCommitment(
-        ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature,
-        OperatorCommitment calldata initialCommitment,
-        bytes32 substrate_pubkey
-    ) external restricted {
-        AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
-        _getVerisenseAVSManagerStorage().operatorAddresses.add(msg.sender);
-        _getVerisenseAVSManagerStorage().operators[msg.sender].commitment = initialCommitment;
-        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
-        emit OperatorRegisteredWithCommitment(msg.sender, initialCommitment);
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
     function startDeregisterOperator() external registeredOperator(msg.sender) restricted {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
@@ -173,33 +157,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         $.operatorAddresses.remove(msg.sender);
 
         emit OperatorDeregistered(msg.sender);
-    }
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
-    function setOperatorCommitment(OperatorCommitment memory newCommitment)
-        external
-        registeredOperator(msg.sender)
-        restricted
-    {
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-        OperatorData storage operator = $.operators[msg.sender];
-
-        if (operator.commitmentValidAfter != 0 && block.number >= operator.commitmentValidAfter) {
-            operator.commitment = operator.pendingCommitment;
-        }
-
-        operator.pendingCommitment = newCommitment;
-        operator.commitmentValidAfter = uint64(block.number) + $.deregistrationDelay;
-
-        emit OperatorCommitmentChangeInitiated({
-            operator: msg.sender,
-            oldCommitment: operator.commitment,
-            newCommitment: newCommitment,
-            validAfter: operator.commitmentValidAfter
-        });
     }
 
     /**
@@ -370,27 +327,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         OperatorData storage operatorData = $.operators[operator];
 
-        OperatorCommitment memory activeCommitment = _getActiveCommitment(operatorData);
-
         return OperatorDataExtended({
-            commitment: activeCommitment,
-            pendingCommitment: operatorData.pendingCommitment,
             startDeregisterOperatorBlock: operatorData.startDeregisterOperatorBlock,
-            isRegistered: _getAvsOperatorStatus(operator) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED,
-            commitmentValidAfter: operatorData.commitmentValidAfter
+            isRegistered: _getAvsOperatorStatus(operator) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED
         });
     }
 
-    function _getActiveCommitment(OperatorData storage operatorData)
-        internal
-        view
-        returns (OperatorCommitment memory)
-    {
-        if (operatorData.commitmentValidAfter != 0 && block.number >= operatorData.commitmentValidAfter) {
-            return operatorData.pendingCommitment;
-        }
-        return operatorData.commitment;
-    }
+
 
     /**
      * @dev Internal function to set or update the deregistration delay

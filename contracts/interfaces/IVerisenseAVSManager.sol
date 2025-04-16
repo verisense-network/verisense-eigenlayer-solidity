@@ -43,14 +43,8 @@ interface IVerisenseAVSManager {
      * @dev This struct is used to keep track of important operator details.
      */
     struct OperatorData {
-        /// @notice The current commitment of the operator.
-        OperatorCommitment commitment;
-        /// @notice The pending commitment of the operator.
-        OperatorCommitment pendingCommitment;
         /// @notice The block number when the operator started the deregistration process.
         uint64 startDeregisterOperatorBlock;
-        /// @notice The block number after which the pending commitment becomes valid.
-        uint64 commitmentValidAfter;
         /// @notice pubkey for substate block
         bytes32 substrate_pubkey;
 
@@ -81,27 +75,14 @@ interface IVerisenseAVSManager {
         bool registered;
     }
 
-    struct OperatorCommitment {
-        /// @notice The delegate key for the operator.
-        bytes delegateKey;
-        /// @notice Chain IDs the operator is committed to.
-        uint256[] chainIds;
-    }
-
     /**
      * @title OperatorDataExtended
      * @notice Struct to store extended information about an operator in the Verisense AVS system.
      * @dev This struct combines OperatorData with additional status information.
      */
     struct OperatorDataExtended {
-        /// @notice The current commitment of the operator.
-        OperatorCommitment commitment;
-        /// @notice The pending commitment of the operator.
-        OperatorCommitment pendingCommitment;
         /// @notice The block number when the operator started the deregistration process.
         uint128 startDeregisterOperatorBlock;
-        /// @notice The block number after which the pending commitment becomes valid.
-        uint128 commitmentValidAfter;
         /// @notice Whether the operator is registered or not.
         bool isRegistered;
     }
@@ -174,13 +155,6 @@ interface IVerisenseAVSManager {
     event OperatorRegistered(address indexed operator);
 
     /**
-     * @notice Emitted when a new operator is registered in the Verisense AVS with a commitment.
-     * @param operator The address of the registered operator.
-     * @param commitment The commitment set for the operator.
-     */
-    event OperatorRegisteredWithCommitment(address indexed operator, OperatorCommitment commitment);
-
-    /**
      * @notice Emitted when a new validator is registered in the Verisense AVS .
      * @param podOwner The address of the validator's EigenPod owner.
      * @param delegateKey The delegate public key for the validator.
@@ -214,19 +188,6 @@ interface IVerisenseAVSManager {
      */
     event ValidatorDeregistered(address indexed operator, bytes32 blsPubKeyHash);
 
-    /**
-     * @notice Emitted when an operator's commitment is set or updated.
-     * @param operator The address of the operator.
-     * @param oldCommitment The previous commitment for the operator.
-     * @param newCommitment The new commitment for the operator.
-     */
-    event OperatorCommitmentSet(
-        address indexed operator, OperatorCommitment oldCommitment, OperatorCommitment newCommitment
-    );
-
-    event OperatorCommitmentChangeInitiated(
-        address indexed operator, OperatorCommitment oldCommitment, OperatorCommitment newCommitment, uint128 validAfter
-    );
 
     /**
      * @notice Emitted when the deregistration delay is updated.
@@ -272,17 +233,6 @@ interface IVerisenseAVSManager {
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature, bytes32 substrate_pubkey) external;
 
     /**
-     * @notice Registers a new operator in the Verisense AVS with a commitment.
-     * @param operatorSignature The signature and associated data for operator registration.
-     * @param initialCommitment The initial commitment for the operator.
-     */
-    function registerOperatorWithCommitment(
-        ISignatureUtils.SignatureWithSaltAndExpiry memory operatorSignature,
-        OperatorCommitment memory initialCommitment,
-        bytes32 substrate_pubkey
-    ) external;
-
-    /**
      * @notice Starts the process of deregistering an operator from the Verisense AVS.
      */
     function startDeregisterOperator() external;
@@ -291,11 +241,6 @@ interface IVerisenseAVSManager {
      * @notice Finishes the process of deregistering an operator from the Verisense AVS.
      */
     function finishDeregisterOperator() external;
-    /**
-     * @notice Sets the commitment for an operator.
-     * @param newCommitment The new commitment to set.
-     */
-    function setOperatorCommitment(OperatorCommitment memory newCommitment) external;
 
     /**
      * @notice Updates the metadata URI for the AVS
