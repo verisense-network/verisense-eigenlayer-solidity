@@ -68,27 +68,27 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     }
 
     constructor(
-        IEigenPodManager eigenPodManagerAddress,
-        IDelegationManager eigenDelegationManagerAddress,
-        IAVSDirectory avsDirectoryAddress,
-        IRewardsCoordinator rewardsCoordinatorAddress
+        address eigenPodManagerAddress,
+        address eigenDelegationManagerAddress,
+        address avsDirectoryAddress,
+        address rewardsCoordinatorAddress
     ) {
-        if (address(eigenPodManagerAddress) == address(0)) {
+        if (eigenPodManagerAddress == address(0)) {
             revert InvalidEigenPodManagerAddress();
         }
-        if (address(eigenDelegationManagerAddress) == address(0)) {
+        if (eigenDelegationManagerAddress == address(0)) {
             revert InvalidEigenDelegationManagerAddress();
         }
-        if (address(avsDirectoryAddress) == address(0)) {
+        if (avsDirectoryAddress == address(0)) {
             revert InvalidAVSDirectoryAddress();
         }
-        if (address(rewardsCoordinatorAddress) == address(0)) {
+        if (rewardsCoordinatorAddress == address(0)) {
             revert InvalidRewardsCoordinatorAddress();
         }
-        EIGEN_POD_MANAGER = eigenPodManagerAddress;
-        EIGEN_DELEGATION_MANAGER = eigenDelegationManagerAddress;
-        AVS_DIRECTORY = IAVSDirectory(address(avsDirectoryAddress));
-        EIGEN_REWARDS_COORDINATOR = IRewardsCoordinator(address(rewardsCoordinatorAddress));
+        EIGEN_POD_MANAGER = IEigenPodManager(eigenPodManagerAddress);
+        EIGEN_DELEGATION_MANAGER = IDelegationManager(eigenDelegationManagerAddress);
+        AVS_DIRECTORY = IAVSDirectory(avsDirectoryAddress);
+        EIGEN_REWARDS_COORDINATOR = IRewardsCoordinator(rewardsCoordinatorAddress);
         _disableInitializers();
     }
 
@@ -221,19 +221,11 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         EIGEN_REWARDS_COORDINATOR.setClaimerFor(claimer);
     }
 
-    // GETTERS
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
     function getDeregistrationDelay() external view returns (uint64) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         return $.deregistrationDelay;
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
     function getOperator(address operator) external view returns (OperatorDataExtended memory) {
         return _getOperator(operator);
     }
@@ -256,9 +248,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         return validators;
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
     function getOperatorRestakedStrategies(address operator)
         external
         view
@@ -292,7 +281,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         }
     }
 
-
     function _getOperatorStake(address operator, IStrategy[] memory strategies) internal view returns (uint256) {
         uint256[] memory shares = EIGEN_DELEGATION_MANAGER.getOperatorShares(operator, strategies);
         uint256 total_shares = 0;
@@ -312,28 +300,19 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         return strategies;
     }
 
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     */
     function getRestakeableStrategies() external view returns (address[] memory) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         return $.allowlistedRestakingStrategies.values();
     }
 
-    // INTERNAL FUNCTIONS
-
     function _getOperator(address operator) internal view returns (OperatorDataExtended memory) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         OperatorData storage operatorData = $.operators[operator];
-
         return OperatorDataExtended({
             startDeregisterOperatorBlock: operatorData.startDeregisterOperatorBlock,
             isRegistered: _getAvsOperatorStatus(operator) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED
         });
     }
-
-
 
     /**
      * @dev Internal function to set or update the deregistration delay
@@ -343,7 +322,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         uint64 oldDelay = $.deregistrationDelay;
         $.deregistrationDelay = newDelay;
-
         emit DeregistrationDelaySet(oldDelay, newDelay);
     }
 
