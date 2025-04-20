@@ -24,21 +24,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     using SafeERC20 for IERC20;
 
     address public constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
-    /**
-     * @notice The EigenPodManager
-     */
+
     IEigenPodManager public immutable override EIGEN_POD_MANAGER;
-    /**
-     * @notice The EigenDelegationManager
-     */
+
     IDelegationManager public immutable override EIGEN_DELEGATION_MANAGER;
-    /**
-     * @notice The RewardsCoordinator contract
-     */
+
     IRewardsCoordinator public immutable EIGEN_REWARDS_COORDINATOR;
-    /**
-     * @notice The AVSDirectory contract
-     */
+
     IAVSDirectory public immutable override AVS_DIRECTORY;
 
 
@@ -56,10 +48,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         return abi.decode(data, (IAVSDirectory.OperatorAVSRegistrationStatus));
     }
 
-    /**
-     * @dev Modifier to check if the operator is registered in the AVS
-     * @param operator The address of the operator
-     */
     modifier registeredOperator(address operator) {
         if (_getAvsOperatorStatus(operator) == IAVSDirectory.OperatorAVSRegistrationStatus.UNREGISTERED) {
             revert OperatorNotRegistered();
@@ -109,10 +97,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorRegistered(msg.sender);
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
     function startDeregisterOperator() external registeredOperator(msg.sender) restricted {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
@@ -127,10 +111,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorDeregisterStarted(msg.sender);
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
     function finishDeregisterOperator() external registeredOperator(msg.sender) restricted {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
@@ -152,26 +132,14 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorDeregistered(msg.sender);
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted to the DAO
-     */
     function setDeregistrationDelay(uint64 newDelay) external restricted {
         _setDeregistrationDelay(newDelay);
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted to the DAO
-     */
     function updateAVSMetadataURI(string memory _metadataURI) external restricted {
         AVS_DIRECTORY.updateAVSMetadataURI(_metadataURI);
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted to the DAO
-     */
     function setAllowlistRestakingStrategy(address strategy, bool allowed) external restricted {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         bool success;
@@ -187,10 +155,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         }
     }
 
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted to the OPERATIONS_MULTISIG
-     */
     function submitOperatorRewards(IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
         external
         restricted
@@ -206,7 +170,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
             IERC20(address(submission.token)).safeIncreaseAllowance(address(EIGEN_REWARDS_COORDINATOR), totalRewards);
         }
         EIGEN_REWARDS_COORDINATOR.createOperatorDirectedAVSRewardsSubmission(address(this), submissions);
-
         emit OperatorRewardsSubmitted();
     }
 
@@ -312,10 +275,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         });
     }
 
-    /**
-     * @dev Internal function to set or update the deregistration delay
-     * @param newDelay The new deregistration delay to set
-     */
     function _setDeregistrationDelay(uint64 newDelay) internal {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         uint64 oldDelay = $.deregistrationDelay;
