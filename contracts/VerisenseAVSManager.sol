@@ -95,17 +95,10 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
     function initialize(address accessManager, uint64 initialDeregistrationDelay) public initializer {
         __AccessManaged_init(accessManager);
         _setDeregistrationDelay(initialDeregistrationDelay);
-        // Initialize BEACON_CHAIN_STRATEGY as an allowed restaking strategy
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         $.allowlistedRestakingStrategies.add(BEACON_CHAIN_STRATEGY);
     }
 
-    // EXTERNAL FUNCTIONS
-
-    /**
-     * @inheritdoc IVerisenseAVSManager
-     * @dev Restricted in this context is like `whenNotPaused` modifier from Pausable.sol
-     */
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substrate_pubkey)
         external
         restricted
@@ -238,21 +231,19 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
             address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
             OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
             OperatorValidData memory dv = OperatorValidData({
-                key : d.substrate_pubkey,
+                substratePubkey : d.substrate_pubkey,
                 operator : key,
                 stake : _getOperatorStake(key, strategies),
-                isRegistered : _getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED
+                isRegistered : _getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED,
+                restakedStrategies : sortAddresses(_getOperatorRestakedStrategies(key))
             });
             validators[i] = dv;
         }
         return validators;
     }
 
-    function getOperatorRestakedStrategies(address operator)
-        external
-        view
-        returns (address[] memory restakedStrategies)
-    {
+    function _getOperatorRestakedStrategies(address operator) internal view
+                    returns (address[] memory restakedStrategies) {
         OperatorDataExtended memory operatorData = _getOperator(operator);
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
@@ -279,6 +270,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
                 if lt(restakedCount, allowlistedCount) { mstore(restakedStrategies, restakedCount) }
             }
         }
+    }
+    function getOperatorRestakedStrategies(address operator)
+        external
+        view
+        returns (address[] memory restakedStrategies)
+    {
+       return _getOperatorRestakedStrategies(operator);
     }
 
     function _getOperatorStake(address operator, IStrategy[] memory strategies) internal view returns (uint256) {
@@ -323,6 +321,24 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         uint64 oldDelay = $.deregistrationDelay;
         $.deregistrationDelay = newDelay;
         emit DeregistrationDelaySet(oldDelay, newDelay);
+    }
+
+    function sortAddresses(address[] memory arr) public pure returns (address[] memory) {
+        if (arr.length == 0) {
+            return arr;
+        }
+        address[] memory sortedArr = new address[](arr.length);
+        for (uint i = 0; i < arr.length; i++) {
+            sortedArr[i] = arr[i];
+        }
+        for (uint i = 0; i < sortedArr.length - 1; i++) {
+            for (uint j = 0; j < sortedArr.length - i - 1; j++) {
+                if (uint160(sortedArr[j]) > uint160(sortedArr[j + 1])) {
+                    (sortedArr[j], sortedArr[j + 1]) = (sortedArr[j + 1], sortedArr[j]);
+                }
+            }
+        }
+        return sortedArr;
     }
 
     function _authorizeUpgrade(address newImplementation) internal virtual override restricted { }

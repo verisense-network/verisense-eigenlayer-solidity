@@ -33,8 +33,9 @@ interface IVerisenseAVSManager {
     struct OperatorValidData {
         address operator;
         uint256 stake;
-        bytes32 key;
+        bytes32 substratePubkey;
         bool isRegistered;
+        address[] restakedStrategies;
     }
 
     /**
