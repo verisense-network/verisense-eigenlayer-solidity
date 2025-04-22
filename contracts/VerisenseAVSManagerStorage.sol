@@ -16,11 +16,6 @@ abstract contract VerisenseAVSManagerStorage is IVerisenseAVSManager {
         uint64 deregistrationDelay;
         EnumerableSet.AddressSet allowlistedRestakingStrategies;
     }
-
-    /**
-     * @dev Storage slot location for VerisenseAVSManager
-     * @custom:storage-location erc7201:VerisenseAVSManager.storage
-     */
     bytes32 private constant _STORAGE_LOCATION = 0xaf993094c8eaa0abdffcc638bc8d87f9c9a50f945db9b99ab0b6681eab4f4f00;
 
     function _getVerisenseAVSManagerStorage() internal pure returns (VerisenseAVSStorage storage $) {

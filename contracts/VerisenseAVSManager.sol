@@ -2,8 +2,7 @@
 pragma solidity >=0.8.0 <0.9.0;
 
 import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import { AccessManagedUpgradeable } from
-    "@openzeppelin/contracts-upgradeable/access/manager/AccessManagedUpgradeable.sol";
+
 import { EnumerableSet } from "@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 import { EnumerableMap } from "@openzeppelin/contracts/utils/structs/EnumerableMap.sol";
 import { ISignatureUtils } from "eigenlayer-contracts/src/contracts/interfaces/ISignatureUtils.sol";
@@ -17,22 +16,19 @@ import {VerisenseAVSManagerStorage} from "./VerisenseAVSManagerStorage.sol";
 import { IRewardsCoordinator } from "eigenlayer-contracts/src/contracts/interfaces/IRewardsCoordinator.sol";
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 
-contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, AccessManagedUpgradeable {
+contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
     using EnumerableSet for EnumerableSet.UintSet;
     using SafeERC20 for IERC20;
+    IEigenPodManager public EIGEN_POD_MANAGER;
 
-    address public constant BEACON_CHAIN_STRATEGY = 0xbeaC0eeEeeeeEEeEeEEEEeeEEeEeeeEeeEEBEaC0;
+    IDelegationManager public EIGEN_DELEGATION_MANAGER;
 
-    IEigenPodManager public immutable override EIGEN_POD_MANAGER;
+    IRewardsCoordinator public EIGEN_REWARDS_COORDINATOR;
 
-    IDelegationManager public immutable override EIGEN_DELEGATION_MANAGER;
-
-    IRewardsCoordinator public immutable EIGEN_REWARDS_COORDINATOR;
-
-    IAVSDirectory public immutable override AVS_DIRECTORY;
-
+    IAVSDirectory public AVS_DIRECTORY;
 
     function _getAvsOperatorStatus(address operator)
         internal
@@ -55,12 +51,13 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         _;
     }
 
-    constructor(
+
+    function initialize(
         address eigenPodManagerAddress,
         address eigenDelegationManagerAddress,
         address avsDirectoryAddress,
-        address rewardsCoordinatorAddress
-    ) {
+        address rewardsCoordinatorAddress,
+        uint64 initialDeregistrationDelay) public initializer {
         if (eigenPodManagerAddress == address(0)) {
             revert InvalidEigenPodManagerAddress();
         }
@@ -77,19 +74,14 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         EIGEN_DELEGATION_MANAGER = IDelegationManager(eigenDelegationManagerAddress);
         AVS_DIRECTORY = IAVSDirectory(avsDirectoryAddress);
         EIGEN_REWARDS_COORDINATOR = IRewardsCoordinator(rewardsCoordinatorAddress);
-        _disableInitializers();
-    }
-
-    function initialize(address accessManager, uint64 initialDeregistrationDelay) public initializer {
-        __AccessManaged_init(accessManager);
         _setDeregistrationDelay(initialDeregistrationDelay);
-        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-        $.allowlistedRestakingStrategies.add(BEACON_CHAIN_STRATEGY);
+        __Ownable_init(msg.sender);
+        __UUPSUpgradeable_init();
     }
 
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substrate_pubkey)
         external
-        restricted
+        onlyOwner
     {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
         _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
@@ -97,7 +89,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorRegistered(msg.sender);
     }
 
-    function startDeregisterOperator() external registeredOperator(msg.sender) restricted {
+    function startDeregisterOperator() external registeredOperator(msg.sender) onlyOwner {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
@@ -111,7 +103,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorDeregisterStarted(msg.sender);
     }
 
-    function finishDeregisterOperator() external registeredOperator(msg.sender) restricted {
+    function finishDeregisterOperator() external registeredOperator(msg.sender) onlyOwner {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
@@ -132,15 +124,15 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorDeregistered(msg.sender);
     }
 
-    function setDeregistrationDelay(uint64 newDelay) external restricted {
+    function setDeregistrationDelay(uint64 newDelay) external onlyOwner {
         _setDeregistrationDelay(newDelay);
     }
 
-    function updateAVSMetadataURI(string memory _metadataURI) external restricted {
+    function updateAVSMetadataURI(string memory _metadataURI) external onlyOwner {
         AVS_DIRECTORY.updateAVSMetadataURI(_metadataURI);
     }
 
-    function setAllowlistRestakingStrategy(address strategy, bool allowed) external restricted {
+    function setAllowlistRestakingStrategy(address strategy, bool allowed) external onlyOwner {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         bool success;
         if (allowed) {
@@ -157,7 +149,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
 
     function submitOperatorRewards(IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
         external
-        restricted
+        onlyOwner
     {
         uint256 submissionsLength = submissions.length;
         for (uint256 i = 0; i < submissionsLength; i++) {
@@ -173,7 +165,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         emit OperatorRewardsSubmitted();
     }
 
-    function setClaimerFor(address claimer) external restricted {
+    function setClaimerFor(address claimer) external onlyOwner {
         EIGEN_REWARDS_COORDINATOR.setClaimerFor(claimer);
     }
 
@@ -300,5 +292,21 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Acc
         return sortedArr;
     }
 
-    function _authorizeUpgrade(address newImplementation) internal virtual override restricted { }
+    function calculateOperatorAVSRegistrationDigestHash(
+        address operator,
+        address avs,
+        bytes32 salt,
+        uint256 expiry,
+        bytes32 sep,
+        bytes32 typehash
+    ) public pure returns (bytes32) {
+        // calculate the struct hash
+        bytes32 structHash = keccak256(abi.encode(typehash, operator, avs, salt, expiry));
+        // calculate the digest hash
+        bytes32 digestHash = keccak256(abi.encodePacked("\x19\x01", sep, structHash));
+        return digestHash;
+    }
+
+
+    function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }
 }
