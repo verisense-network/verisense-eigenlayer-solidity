@@ -81,7 +81,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
 
     function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substrate_pubkey)
         external
-        onlyOwner
     {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
         _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
@@ -89,7 +88,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         emit OperatorRegistered(msg.sender);
     }
 
-    function startDeregisterOperator() external registeredOperator(msg.sender) onlyOwner {
+    function startDeregisterOperator() external registeredOperator(msg.sender) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
@@ -103,7 +102,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         emit OperatorDeregisterStarted(msg.sender);
     }
 
-    function finishDeregisterOperator() external registeredOperator(msg.sender) onlyOwner {
+    function finishDeregisterOperator() external registeredOperator(msg.sender) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
 
         OperatorData storage operator = $.operators[msg.sender];
@@ -274,7 +273,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         emit DeregistrationDelaySet(oldDelay, newDelay);
     }
 
-    function sortAddresses(address[] memory arr) public pure returns (address[] memory) {
+    function sortAddresses(address[] memory arr) internal pure returns (address[] memory) {
         if (arr.length == 0) {
             return arr;
         }
@@ -291,22 +290,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         }
         return sortedArr;
     }
-
-    function calculateOperatorAVSRegistrationDigestHash(
-        address operator,
-        address avs,
-        bytes32 salt,
-        uint256 expiry,
-        bytes32 sep,
-        bytes32 typehash
-    ) public pure returns (bytes32) {
-        // calculate the struct hash
-        bytes32 structHash = keccak256(abi.encode(typehash, operator, avs, salt, expiry));
-        // calculate the digest hash
-        bytes32 digestHash = keccak256(abi.encodePacked("\x19\x01", sep, structHash));
-        return digestHash;
-    }
-
 
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }
 }
