@@ -17,6 +17,7 @@ import { IRewardsCoordinator } from "eigenlayer-contracts/src/contracts/interfac
 import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 
 contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -289,6 +290,26 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
             }
         }
         return sortedArr;
+    }
+
+    function calculateOperatorAVSRegistrationDigestHash(
+        address operator,
+        address avs,
+        bytes32 salt,
+        uint256 expiry
+    ) public view returns (bytes32) {
+        bytes32 OPERATOR_AVS_REGISTRATION_TYPEHASH =
+        keccak256("OperatorAVSRegistration(address operator,address avs,bytes32 salt,uint256 expiry)");
+        // calculate the struct hash
+        bytes32 sep = AVS_DIRECTORY.domainSeparator();
+        bytes32 structHash = keccak256(abi.encode(OPERATOR_AVS_REGISTRATION_TYPEHASH, operator, avs, salt, expiry));
+        // calculate the digest hash
+        bytes32 digestHash = keccak256(abi.encodePacked("\x19\x01", sep, structHash));
+        return digestHash;
+    }
+
+    function ecdsa_check(bytes32 message_hash, bytes memory signature ) public pure returns (address) {
+        return ECDSA.recover(message_hash, signature);
     }
 
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner { }
