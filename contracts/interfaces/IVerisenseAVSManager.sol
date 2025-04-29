@@ -34,7 +34,6 @@ interface IVerisenseAVSManager {
         address operator;
         uint256 stake;
         bytes32 substratePubkey;
-        bool isRegistered;
         address[] restakedStrategies;
     }
 
@@ -296,9 +295,10 @@ interface IVerisenseAVSManager {
 
     /**
      * @notice Submits EigenLayer rewards for operators.
+     * @param eraIndex The era index of submissions.
      * @param submissions The array of rewards submissions.
      */
-    function submitOperatorRewards(IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
+    function submitOperatorRewards(uint256 eraIndex, IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
         external;
 
     /**

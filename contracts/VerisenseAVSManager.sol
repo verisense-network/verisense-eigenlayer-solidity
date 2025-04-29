@@ -52,7 +52,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         _;
     }
 
-
     function initialize(
         address eigenPodManagerAddress,
         address eigenDelegationManagerAddress,
@@ -147,10 +146,21 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         }
     }
 
-    function submitOperatorRewards(IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
+    function _updateLatestRewardedEra(uint256 eraIndex) internal {
+        require(eraIndex > 0, "reward era must more than 0");
+        VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
+        if ($.latestRewardedEra == 0) {
+            $.latestRewardedEra = eraIndex;
+        } else {
+            require(eraIndex == $.latestRewardedEra + 1, "latest rewarded era must be in a row");
+            $.latestRewardedEra = eraIndex;
+        }
+    }
+    function submitOperatorRewards(uint256 eraIndex, IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
         external
         onlyOwner
     {
+        _updateLatestRewardedEra(eraIndex);
         uint256 submissionsLength = submissions.length;
         for (uint256 i = 0; i < submissionsLength; i++) {
             IRewardsCoordinator.OperatorDirectedRewardsSubmission calldata submission = submissions[i];
@@ -176,25 +186,6 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
 
     function getOperator(address operator) external view returns (OperatorDataExtended memory) {
         return _getOperator(operator);
-    }
-
-    function getOperators() external view returns (OperatorValidData[] memory) {
-        uint256 operators_size = _getVerisenseAVSManagerStorage().operatorAddresses.length();
-        OperatorValidData[]  memory validators = new OperatorValidData[](operators_size);
-        IStrategy[] memory strategies = _getStrategies();
-        for (uint256 i; i < operators_size; i++) {
-            address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
-            OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
-            OperatorValidData memory dv = OperatorValidData({
-                substratePubkey : d.substrate_pubkey,
-                operator : key,
-                stake : _getOperatorStake(key, strategies),
-                isRegistered : _getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED,
-                restakedStrategies : sortAddresses(_getOperatorRestakedStrategies(key))
-            });
-            validators[i] = dv;
-        }
-        return validators;
     }
 
     function _getOperatorRestakedStrategies(address operator) internal view
@@ -226,6 +217,30 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
             }
         }
     }
+
+    function getOperators() external view returns (OperatorValidData[] memory operatorList) {
+        uint256 operators_size = _getVerisenseAVSManagerStorage().operatorAddresses.length();
+        operatorList = new OperatorValidData[](operators_size);
+        IStrategy[] memory strategies = _getStrategies();
+        uint256 registeredCount = 0;
+        for (uint256 i; i < operators_size; i++) {
+            address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
+            if (_getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED) {
+                OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
+                OperatorValidData memory dv = OperatorValidData({
+                    substratePubkey : d.substrate_pubkey,
+                    operator : key,
+                    stake : _getOperatorStake(key, strategies),
+                    restakedStrategies : sortAddresses(_getOperatorRestakedStrategies(key))
+                });
+                operatorList[registeredCount] = dv;
+            }
+        }
+        assembly {
+            if lt(registeredCount, operators_size) { mstore(operatorList, registeredCount) }
+        }
+    }
+
     function getOperatorRestakedStrategies(address operator)
         external
         view

@@ -14,6 +14,8 @@ abstract contract VerisenseAVSManagerStorage is IVerisenseAVSManager {
         mapping(address operator => OperatorData operatorData) operators;
         EnumerableSet.AddressSet operatorAddresses;
         uint64 deregistrationDelay;
+        uint256 stakeFloor;
+        uint256 latestRewardedEra;
         EnumerableSet.AddressSet allowlistedRestakingStrategies;
     }
     bytes32 private constant _STORAGE_LOCATION = 0xaf993094c8eaa0abdffcc638bc8d87f9c9a50f945db9b99ab0b6681eab4f4f00;
@@ -24,4 +26,5 @@ abstract contract VerisenseAVSManagerStorage is IVerisenseAVSManager {
             $.slot := _STORAGE_LOCATION
         }
     }
+
 }
