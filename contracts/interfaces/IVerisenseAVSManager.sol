@@ -301,7 +301,7 @@ interface IVerisenseAVSManager {
     function submitOperatorRewards(uint256 eraIndex, IRewardsCoordinator.OperatorDirectedRewardsSubmission[] calldata submissions)
         external;
 
-    function LatestRewardedEra() external view returns (uint256);
+    function latestRewardedEra() external view returns (uint256);
 
     /**
      * @notice Sets the claimer for the AVS to get excess rewards back.

@@ -157,7 +157,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         }
     }
 
-    function LatestRewardedEra() external view returns (uint256) {
+    function latestRewardedEra() external view returns (uint256) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
         return $.latestRewardedEra;
     }
