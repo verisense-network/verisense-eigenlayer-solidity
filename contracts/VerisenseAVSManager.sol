@@ -229,7 +229,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         operatorList = new OperatorValidData[](operators_size);
         IStrategy[] memory strategies = _getStrategies();
         uint256 registeredCount = 0;
-        for (uint256 i; i < operators_size; i++) {
+        for (uint256 i = 0; i < operators_size; i++) {
             address key = _getVerisenseAVSManagerStorage().operatorAddresses.at(i);
             if (_getAvsOperatorStatus(key) == IAVSDirectory.OperatorAVSRegistrationStatus.REGISTERED) {
                 OperatorData memory d = _getVerisenseAVSManagerStorage().operators[key];
@@ -239,7 +239,7 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
                     stake : _getOperatorStake(key, strategies),
                     restakedStrategies : sortAddresses(_getOperatorRestakedStrategies(key))
                 });
-                operatorList[registeredCount] = dv;
+                operatorList[registeredCount++] = dv;
             }
         }
         assembly {

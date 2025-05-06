@@ -15,6 +15,11 @@
       "address": "0xE0605E59e40aB832EE93c7a0d63f3A8A36ba1209",
       "txHash": "0xb32dad9583e87e687bfcff2f4de234c5e207a09eac91ebbf02fe5d6da357dc73",
       "kind": "uups"
+    },
+    {
+      "address": "0x2ad2e6287725e747cB6D4C0d6127Ef1BB55a406E",
+      "txHash": "0x68a65a00ffc99c45f4ea50f32f4743f9d5a093196d261a1936aa09f90c1d4f43",
+      "kind": "uups"
     }
   ],
   "impls": {
@@ -375,6 +380,399 @@
             "numberOfBytes": "20"
           },
           "t_contract(IRewardsCoordinator)7162": {
+            "label": "contract IRewardsCoordinator",
+            "numberOfBytes": "20"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "14ef53982b0d06804b530d48735c69915a9850a76d2d6876e9f4a4b551af5aaf": {
+      "address": "0xb0762B92106104EC4f7cf28cc0684102f9b3288b",
+      "txHash": "0xb31b37c24c30cc7940681522d39ccae7235966743da9613d306fc45cbaf0a395",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "EIGEN_POD_MANAGER",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IEigenPodManager)6614",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:26"
+          },
+          {
+            "label": "EIGEN_DELEGATION_MANAGER",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IDelegationManager)6098",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:28"
+          },
+          {
+            "label": "EIGEN_REWARDS_COORDINATOR",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(IRewardsCoordinator)7243",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:30"
+          },
+          {
+            "label": "AVS_DIRECTORY",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IAVSDirectory)5573",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)73_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)13_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(IAVSDirectory)5573": {
+            "label": "contract IAVSDirectory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDelegationManager)6098": {
+            "label": "contract IDelegationManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IEigenPodManager)6614": {
+            "label": "contract IEigenPodManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRewardsCoordinator)7243": {
+            "label": "contract IRewardsCoordinator",
+            "numberOfBytes": "20"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "cf8f559f508fc50668e60620a7c151bd45b0569118b34bcc25fa5dc1e86a870c": {
+      "address": "0x28C441d35dC8c47C0980A1E1FEe680dFa0eb0014",
+      "txHash": "0x46f475ad4b44b3713f38fd83fd241d810136e2988a7e1427b88a95bd88169ca0",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "EIGEN_POD_MANAGER",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IEigenPodManager)6630",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:26"
+          },
+          {
+            "label": "EIGEN_DELEGATION_MANAGER",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IDelegationManager)6114",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:28"
+          },
+          {
+            "label": "EIGEN_REWARDS_COORDINATOR",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(IRewardsCoordinator)7259",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:30"
+          },
+          {
+            "label": "AVS_DIRECTORY",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IAVSDirectory)5589",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)73_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)13_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(IAVSDirectory)5589": {
+            "label": "contract IAVSDirectory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDelegationManager)6114": {
+            "label": "contract IDelegationManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IEigenPodManager)6630": {
+            "label": "contract IEigenPodManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRewardsCoordinator)7259": {
+            "label": "contract IRewardsCoordinator",
+            "numberOfBytes": "20"
+          }
+        },
+        "namespaces": {
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    },
+    "32f5ed39dbe66fa386029879d3457a7fac4612b262cd624c8ab0e7bf8c13b071": {
+      "address": "0x434b833C77Daf7ca81A9af9FCb7C713164AC54Eb",
+      "txHash": "0xa4927d3a6e59757757f244ab1bcca2396f54cd10208f85cefa0ec400c8885943",
+      "layout": {
+        "solcVersion": "0.8.24",
+        "storage": [
+          {
+            "label": "EIGEN_POD_MANAGER",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_contract(IEigenPodManager)6615",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:26"
+          },
+          {
+            "label": "EIGEN_DELEGATION_MANAGER",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_contract(IDelegationManager)6099",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:28"
+          },
+          {
+            "label": "EIGEN_REWARDS_COORDINATOR",
+            "offset": 0,
+            "slot": "2",
+            "type": "t_contract(IRewardsCoordinator)7244",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:30"
+          },
+          {
+            "label": "AVS_DIRECTORY",
+            "offset": 0,
+            "slot": "3",
+            "type": "t_contract(IAVSDirectory)5574",
+            "contract": "VerisenseAVSManager",
+            "src": "contracts/VerisenseAVSManager.sol:32"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_struct(InitializableStorage)73_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(OwnableStorage)13_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_contract(IAVSDirectory)5574": {
+            "label": "contract IAVSDirectory",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IDelegationManager)6099": {
+            "label": "contract IDelegationManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IEigenPodManager)6615": {
+            "label": "contract IEigenPodManager",
+            "numberOfBytes": "20"
+          },
+          "t_contract(IRewardsCoordinator)7244": {
             "label": "contract IRewardsCoordinator",
             "numberOfBytes": "20"
           }
