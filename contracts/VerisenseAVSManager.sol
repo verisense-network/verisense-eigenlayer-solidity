@@ -190,6 +190,10 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         return $.deregistrationDelay;
     }
 
+    function updateAVSMetadata(address allocation_addr, string calldata uri) external onlyOwner {
+        IAllocationManager(allocation_addr).updateAVSMetadataURI(address(this), uri);
+    }
+
     function getOperator(address operator) external view returns (OperatorDataExtended memory) {
         return _getOperator(operator);
     }

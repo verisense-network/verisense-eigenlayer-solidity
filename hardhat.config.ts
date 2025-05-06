@@ -2,7 +2,6 @@ import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-ignition-ethers";
 import "@openzeppelin/hardhat-upgrades";
-import { vars } from "hardhat/config";
 
 const {deploy_pri_key} = require("./account.json");
 const config: HardhatUserConfig = {
