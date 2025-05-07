@@ -18,6 +18,7 @@ import { IERC20 } from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {IAllocationManager} from "./interfaces/IAllocationManager.sol";
 
 contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -90,15 +91,11 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
 
     function startDeregisterOperator() external registeredOperator(msg.sender) {
         VerisenseAVSStorage storage $ = _getVerisenseAVSManagerStorage();
-
         OperatorData storage operator = $.operators[msg.sender];
-
         if (operator.startDeregisterOperatorBlock != 0) {
             revert DeregistrationAlreadyStarted();
         }
-
         operator.startDeregisterOperatorBlock = uint64(block.number);
-
         emit OperatorDeregisterStarted(msg.sender);
     }
 

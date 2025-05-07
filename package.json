@@ -14,6 +14,6 @@
   "dependencies": {
     "@openzeppelin/contracts": "5.0.1",
     "@openzeppelin/contracts-upgradeable": "5.0.1",
-    "eigenlayer-contracts": "https://github.com/Layr-Labs/eigenlayer-contracts.git#db0f582"
+    "eigenlayer-contracts": "https://github.com/Layr-Labs/eigenlayer-contracts.git#ecaff63"
   }
 }

@@ -1,0 +1,10 @@
+{
+  "_format": "hh-sol-artifact-1",
+  "contractName": "Endian",
+  "sourceName": "eigenlayer-contracts/src/contracts/libraries/Endian.sol",
+  "abi": [],
+  "bytecode": "0x60808060405234601757603a9081601d823930815050f35b600080fdfe600080fdfea2646970667358221220bbbf1c8e265e578aa2e8605f341a54abeac04a2f81ba76a47527baec9010c6b264736f6c63430008180033",
+  "deployedBytecode": "0x600080fdfea2646970667358221220bbbf1c8e265e578aa2e8605f341a54abeac04a2f81ba76a47527baec9010c6b264736f6c63430008180033",
+  "linkReferences": {},
+  "deployedLinkReferences": {}
+}

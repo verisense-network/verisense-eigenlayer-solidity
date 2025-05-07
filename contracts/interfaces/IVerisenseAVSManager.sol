@@ -47,7 +47,6 @@ interface IVerisenseAVSManager {
         uint64 startDeregisterOperatorBlock;
         /// @notice pubkey for substate block
         bytes32 substrate_pubkey;
-
         bool isRegistered;
     }
 
