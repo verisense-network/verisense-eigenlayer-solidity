@@ -19,6 +19,7 @@ import { SafeERC20 } from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.s
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {IAllocationManager} from "./interfaces/IAllocationManager.sol";
+import {IPermissionController} from "./interfaces/IPermissionController.sol";
 
 contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, OwnableUpgradeable {
     using EnumerableSet for EnumerableSet.AddressSet;
@@ -189,6 +190,10 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
 
     function updateAVSMetadata(address allocation_addr, string calldata uri) external onlyOwner {
         IAllocationManager(allocation_addr).updateAVSMetadataURI(address(this), uri);
+    }
+
+    function addAdminToEigenlayer(address permissionController, address admin) external onlyOwner {
+        IPermissionController(permissionController).addPendingAdmin(address(this), admin);
     }
 
     function getOperator(address operator) external view returns (OperatorDataExtended memory) {
