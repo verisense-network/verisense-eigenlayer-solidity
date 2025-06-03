@@ -81,13 +81,17 @@ contract VerisenseAVSManager is VerisenseAVSManagerStorage, UUPSUpgradeable, Own
         __UUPSUpgradeable_init();
     }
 
-    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substrate_pubkey)
+    function registerOperator(ISignatureUtils.SignatureWithSaltAndExpiry calldata operatorSignature, bytes32 substratePubkey)
         external
     {
         AVS_DIRECTORY.registerOperatorToAVS(msg.sender, operatorSignature);
-        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substrate_pubkey;
+        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substratePubkey;
         _getVerisenseAVSManagerStorage().operatorAddresses.add(msg.sender);
         emit OperatorRegistered(msg.sender);
+    }
+
+    function changeSubstrateKey(bytes32 substratePubkey) external registeredOperator(msg.sender) {
+        _getVerisenseAVSManagerStorage().operators[msg.sender].substrate_pubkey = substratePubkey;
     }
 
     function startDeregisterOperator() external registeredOperator(msg.sender) {
